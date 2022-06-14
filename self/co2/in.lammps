@@ -7,11 +7,12 @@ boundary        p p p
 atom_style      full
 bond_style      harmonic
 angle_style     harmonic
-pair_style      lj/cut/tip4p/cut 1 2 1 1 0.1546 12.0
+pair_style	    lj/cut/tip4p/long 1 2 1 1 0.1546 12.0
+kspace_style	pppm/tip4p 1.0e-4
 
 ## System Definition ------------------------------------------------
 
-region          box block -50 50 -50 50 -50 50
+region          box block -20 20 -20 20 -20 20
 create_box      2 box & 
 bond/types 1 & 
 angle/types 1 & 
@@ -20,7 +21,7 @@ extra/angle/per/atom 1 &
 extra/special/per/atom 2
 
 molecule        h2o TIP4P2005.txt
-create_atoms    0 random 1 1 box mol h2o 123
+create_atoms    0 random 3000 1 box mol h2o 123
 
 ## Atom Information
 
@@ -34,3 +35,15 @@ angle_coeff 1 0 104.52
 
 write_data initial.lammps
 
+## Simulation Settings
+
+fix 1 all nve/limit 0.01
+fix 2 all langevin 1.0 1.0 0.1 123
+
+fix shk all shake 1.0e-4 200 0 b 1 a 1
+
+dump dmp all atom 100 dump.lammpstrj
+
+timestep 1
+thermo 10
+run 1000
