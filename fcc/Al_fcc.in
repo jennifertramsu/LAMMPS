@@ -1,0 +1,56 @@
+# ---------- Initialize Simulation ---------------------  
+units metal 
+dimension 3 
+boundary p p p 
+atom_style atomic 
+
+# ---------- Create Atoms --------------------- 
+lattice 	fcc 4 # specifies fcc lattice with a = 4 angstroms
+region	box block 0 1 0 1 0 1 units lattice # degining cuboidal block labeled box holding one lattice cell
+create_box	1 box # create box with one atom type
+
+lattice	fcc 4 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1  # specify fcc lattice orientation
+create_atoms 1 box # create atoms of type 1 on lattice sites within box
+replicate 2 2 2 # replicate domain by 2x2x2 in x, y, z
+
+# ---------- Define Interatomic Potential --------------------- 
+pair_style eam/alloy # defining form of pairwise interaction potential
+pair_coeff * * Al99.eam.alloy Al 
+neighbor 2.0 bin 
+neigh_modify delay 10 check yes 
+ 
+# ---------- Define Settings --------------------- defining quantities to be recalculated at every time step
+# reference computes as c_<id>
+compute eng all pe/atom # c_eng defined over all atoms to compute potential energy per atom
+compute eatoms all reduce sum c_eng # c_eatoms performs sum reduce of c_eng vector over all atoms (alternatively: compute eatoms all pe)
+
+# syntax: compute ID group-ID style args
+# 		ID = user-assigned name for the computation
+# 		group-ID = ID of the group of atoms to perform the computation on
+
+# ---------- Dump Options --------------------- species how to write output data
+dump		1 all atom 1 dump.relax # tag dump with if 1 to write to dump.relax every 1 steps the coords of all the atoms
+
+# ---------- Run Minimization --------------------- 
+reset_timestep 0 # reset time steps to 0
+# a fix is an operation applied at every time step
+fix 1 all box/relax iso 0.0 vmax 0.001 # define fix 1 operating on all atom relaxes box to an external isotropic pressure of 0.0 bar with a 0.1% maximum fractional volume change per step
+thermo 10 # output thermodynamic info to screen every 10 steps
+thermo_style custom step pe lx ly lz press pxx pyy pzz c_eatoms # customizing thermo output
+min_style cg # perform energy minimization by conjugate gradient
+minimize 1e-25 1e-25 5000 10000 # minimize E = E_FF + E_fix with deltaE = 10^-25 and deltaf = 10^-25 and a maximum of 5000 iterations and 10000 energy evaluations
+
+# define variables as formulas evaluated when called
+# reference variables as v_<id>
+variable natoms equal "count(all)" # natoms = # atoms
+variable teng equal "c_eatoms" # teng = total PE (c_eatoms)
+variable a equal "lx/2" # a = lattice parameter
+variable ecoh equal "v_teng/v_natoms" # ecoh = cohesive energy / atom
+
+# printing terminal output to screen
+print "Total energy (eV) = ${teng};"
+print "Number of atoms = ${natoms};"
+print "Lattice constant (Angstoms) = ${a};"
+print "Cohesive energy (eV/atom) = ${ecoh};"
+
+print "All done!" 

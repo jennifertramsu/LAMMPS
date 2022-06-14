@@ -1,0 +1,50 @@
+## Initialization
+
+units       metal
+dimension   3
+boundary    p p p
+atom_style  atomic
+lattice     fcc 4.8
+
+## System Definition
+
+region    box block 0 36.5 0 36.5 0 73 units box
+region    mid block 2 33.5 5 33.5 3 69 units box
+region    col1 block 0 36.5 0 36.5 69 72 units box
+region    hol1 block 0 36.5 0 36.5 0 3 units box
+
+create_box      1 box
+create_atoms    1 region mid
+
+group           argon type 1
+group           ho-layer1 region hol1
+group           co-layer1 region col1
+group           myall subtract all ho-layer1 co-layer1
+
+mass            1 39.948002
+neighbor        0.1 bin
+neigh_modify    delay 10 check no
+
+velocity        all create 100.0 3213112 mom yes rot yes dist gaussian
+
+pair_style      lj/cut 10.0
+pair_coeff      * * 0.0103 3.405
+
+## Simulation Settings
+
+compute         ar_temp all temp
+
+## Run
+
+fix             5 all nvt temp 100.0 100.0 100
+
+thermo          10000
+thermo_style    custom step c_ar_temp etotal
+
+timestep        0.004
+
+dump d2 all xyz 50000 argon_130_90K_NVT.xyz
+
+restart 50000 argon_130_90K_NVT.restart
+
+run 500000

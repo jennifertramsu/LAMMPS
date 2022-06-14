@@ -1,0 +1,47 @@
+## Initialization
+# Playing around with commands
+
+units lj
+dimension 2
+atom_style atomic
+boundary p p p
+
+## System Definition
+# Rectangle with two circles 
+
+region box block -25.5 25.5 -25.5 25.5 -5 5
+create_box 2 box
+
+region cyin cylinder z 0 0 20 0 1 side in
+region cyou cylinder z 0 0 20 0 1 side out
+create_atoms 1 random 500 123456 cyin
+create_atoms 2 random 1000 123455 cyou
+
+replicate 2 1 1
+
+## Atom Information
+
+pair_style lj/cut 2.5
+pair_coeff 1 1 1.0 1.0
+pair_coeff 2 2 0.5 3.0
+
+mass 1 0.5
+mass 2 0.5
+
+#write_data initial.lammps
+
+## Simulation settings
+# minimization
+
+thermo 10
+minimize 0.0 1.0e-8 1000 100000
+
+fix eq all nve
+fix le all langevin 1.0 1.0 0.1 123
+fix en all enforce2d
+thermo 1000
+
+dump dmp all atom 100 dump.eq.lammpstrj
+
+timestep 1
+run 5000

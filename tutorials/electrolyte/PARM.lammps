@@ -1,0 +1,25 @@
+## Simulation Settings
+
+mass 		1 15.9994
+mass 		2 1.008
+mass		3 28.990
+mass		4 35.453
+mass		5 12.011
+mass		6 12.011
+
+pair_coeff 	1 1 0.185199 3.1589
+pair_coeff 	2 2 0.0 0.0
+pair_coeff	3 3 0.04690 2.4299
+pair_coeff	4 4 0.1500 4.04470
+pair_coeff	5 5 0.07 3.55
+pair_coeff	6 6 0.07 3.55
+
+bond_coeff 	1 0 0.9572 	# bond type (OH), energy of harmonic potential, eq distance
+				# energy is 0 bc using rigid model for water
+				# shape preserved later by shake algorithm
+
+angle_coeff 	1 0 104.52	# angle type (HOH), energy of harmonic potential, eq angle
+
+# parameters for water are given by the TIP4P/2005 force field
+# parameters for Na and Cl given by the CHARMM-27 force field
+# parameters for C are given by the AMBER force field

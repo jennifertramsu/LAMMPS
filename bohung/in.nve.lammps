@@ -1,0 +1,41 @@
+## Initialization
+
+read_restart        argon_130_90K_NVT.restart.500000
+
+## System Definition
+
+region box block 0 36.5 0 36.5 0 73 units box
+region mid block 2 33.5 5 33.5 3 69 units box
+region col1 block 0 36.5 0 36.5 69 72 units box
+region hol1 block 0 36.5 0 36.5 0 3 units box
+
+group ho_layer1 dynamic all region hol1 every 1
+group co_layer1 dynamic all region col1 every 1
+group myall dynamic all region mid every 1
+
+## Simulation Settings
+
+mass 1 39.948002
+neighbor 0.1 bin
+neigh_modify delay 10 check no
+pair_style lj/cut 10.0
+pair_coeff * * 0.0103 3.405
+
+compute ke all ke/atom
+variable temp atom c_ke/1.5*1.6/1.3806503*10000
+compute 2 all chunk/atom bin/1d z lower 0.05 units reduced
+
+## Run
+
+fix 33 all ave/chunk 1 200000 1000000 2 v_temp file all200.profile
+fix 3 all nve
+fix 4 ho_layer1 langevin 130 130 0.01 699483 tally yes
+fix 11 co_layer1 langevin 90 90 0.01 890765 tally yes
+
+thermo 10000
+
+dump d3 all xyz 10000 argon_130_90K_NVE.xyz
+
+timestep 0.004
+
+run 500000

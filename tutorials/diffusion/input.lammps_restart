@@ -1,0 +1,63 @@
+## Initialization
+
+units		lj
+dimension	2
+atom_style	atomic
+pair_style	lj/cut 2.5
+boundary	p p p
+
+## System Definition
+
+read_data	data.min.lammps # instead of creating a regoin and adding atoms, we read the final state of the previous simulation
+				# from before, we can see that atoms moved during energy minimization
+				# to start from a clean slate, we want only type 2 atoms inside the cylinder and type 1 atoms outside the cylinder
+region 		mycylin cylinder z 0 0 15 INF INF side in
+region 		mycylou cylinder z 0 0 15 INF INF side out
+group		mytype1 type 1
+group		mytype2 type 2
+group 		incyl region mycylin
+group 		oucyl region mycylou
+group		type1in intersect mytype1 incyl
+group 		type2ou intersect mytype2 oucyl
+delete_atoms	group type1in
+delete_atoms 	group type2ou
+replicate	2 2 1
+
+## Simulation Settings
+
+mass		1 1
+mass		2 1
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 0.5 3.0
+neigh_modify 	every 1 delay 5 check yes
+dump		mydmp all atom 500 dump.RUN.lammpstrj
+
+# --> extracting data directly from simulation
+
+variable	Ntype1in equal count(mytype1,mycylin)
+variable	Ntype1ou equal count(mytype1,mycylou)
+variable	Ntype2in equal count(mytype2,mycylin)
+variable	Ntype2ou equal count(mytype2,mycylou)
+fix		myat1 all ave/time 1000 1 1000 v_Ntype1in v_Ntype1ou file population1vstime.dat
+fix		myat2 all ave/time 1000 1 1000 v_Ntype2in v_Ntype2ou file population2vstime.dat
+
+# --> the fixes ave/time take the average of the inputted variables over the desired timescales
+# fix ID group-ID ave/time Nevery Nrepeat Nfreq value1 value2 ... keyword args ...
+# 	Nevery = use input values every this many timesteps
+# 	Nrepeat = # of times to use input values for calculating averages
+# 	Nfreq = calculate averages every this many timesteps
+
+## Run
+
+velocity 	all create 1.0 4928459 mom yes rot yes dist gaussian # assign initial velocities, chosen so that initial temperature is 1, no linear and angular momentum given to system, Gaussian distribution
+fix		mynve all nve
+fix		mylgv all langevin 1.0 1.0 0.1 1530917 zero yes # zero yes --> total random force is zero
+fix		myefn all enforce2d
+
+# generating particle flow in one direction
+
+fix flow all addforce 5 0 0
+
+timestep	0.005
+thermo		50000
+run		1500000

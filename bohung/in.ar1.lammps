@@ -1,0 +1,41 @@
+## Initialization
+
+units       metal
+dimension   3
+atom_style  atomic
+boundary    p p p
+lattice     fcc 3.65
+
+## System Definition
+
+region      box1 block 0 57.4 0 57.4 0 57.4 units box
+region      box2 block 0 36.5 0 36.5 0 36.5 units box
+
+create_box      1 box1
+create_atoms    1 region box2
+
+mass            1 39.948002
+neighbor       0.1 bin # neighbou skin style
+neigh_modify    delay 10 check no
+velocity        all create 150.0 3213112 mom yes rot yes dist gaussian
+
+pair_style      hybrid lj/cut 10.0
+pair_coeff      1 1 lj/cut 0.0103 3.405
+
+## Simulation Settings
+
+fix         1 all nvt temp 150.0 10.0 0.01
+compute     2 all chunk/atom bin/1d z lower 0.05 units reduced
+
+# Minimization
+
+fix         33 all ave/chunk 1 20000 20000 2 temp file temp20bin.profile
+thermo      1000
+
+dump        2 all xyz 200 argon_150_10_model.lammpstrj
+dump        3 all custom 100 Argon_HT_*.cfg id type x y z
+
+timestep    0.001
+restart     60000 abcdetemp100.restart
+
+run 200000

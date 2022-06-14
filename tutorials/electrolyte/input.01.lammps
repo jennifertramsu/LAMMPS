@@ -1,0 +1,81 @@
+## Initialization
+
+units		real
+atom_style	full # atom is a dot with mass and charge and can be linked by bonds, angles, dihedrals, and impropers to form molecules
+bond_style	harmonic # harmonic potential
+angle_style	harmonic
+
+# --> LJ potential, Coulombic
+# --> specific to four points water model, automatically accounts for the additional massless site
+# --> #: atom type for O of water, atom type for H of water, OH bond type, HOH angle tyle
+# --> distance from O to massless charge, cutoff
+
+pair_style	lj/cut/tip4p/long 1 2 1 1 0.1546 12.0
+
+# --> cutoff applies to both LJ and Coulombic interactions, but differently
+# --> LJ: only atoms within cutoff interact
+# --> Coulombic 'long': atoms within cutoff are computed directly, beyond are computed in reciprocal space
+
+kspace_style	pppm/tip4p 1.0e-4
+
+# --> defines the long-range solver for Coulombic interactions
+# --> pppm refers to particle-particle particle-mesh
+
+# System Definition
+
+lattice			diamond 3.57 # defining the unit cell, diamond with scale factor 3.57 (to box)
+region			box block -5 5 -5 5 -13 13 # the scale factor increases region size
+
+# --> & introduces line break
+
+create_box		6 box & 
+bond/types 1 & 
+angle/types 1 &
+extra/bond/per/atom 2 & 
+extra/angle/per/atom 1 &
+extra/special/per/atom 2
+
+# --> 1 bond type (OH)
+# --> 1 angle type (HOH)
+# --> extra/*/per/atom --> for memory allocation
+
+## Simulation Settings
+# Creating Walls
+
+region		rbotwall block -5 5 -5 5 -12 -10
+region		rtopwall block -5 5 -5 5 10 12
+
+create_atoms	5 region rtopwall
+create_atoms	6 region rbotwall
+
+# --> in order to add water molecules, need to dl TIP4P2005.txt and place in same folder
+#  --> file has info on position, bonds, angle
+
+# Creating Fluid
+
+region		rliquid block -5 5 -5 5 -9 9 # region defined on previous lattice
+lattice		sc 4.0 	# new lattice for water, distance of 4 A between each water molecule 
+			# larger than eq distance, allows us to place ions more safely 
+molecule	h2omol TIP4P2005.txt # command opens file and names the molecule h2omol
+create_atoms	0 region rliquid mol h2omol 482793 # 0 bc using atom id from file
+
+# --> adding 10 Na and 10 Cl atoms between water molecules
+
+fix		mydep1 all deposit 10 3 1 56513 region rliquid near 0.3
+fix		mydep2 all deposit 10 4 1 58613 region rliquid near 0.3
+
+# --> fix deposit will add one ion at a random position within the rliquid region every timestep
+# --> making short simulation of 10 timesteps, can export the final configuration
+
+include		PARM.lammps
+
+set		type 3 charge 1.0 # specifying charges of the added ions
+set		type 4 charge -1.0
+dump		mydmp all image 10 dump.*.jpg type type
+
+## Run
+
+run		10
+write_data	data.01.lammps
+
+

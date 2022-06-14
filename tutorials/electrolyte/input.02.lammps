@@ -1,0 +1,64 @@
+## Initialization
+
+boundary	p p p
+units		real
+atom_style	full
+bond_style	harmonic
+angle_style	harmonic
+pair_style	lj/cut/tip4p/long 1 2 1 1 0.1546 12.0
+kspace_style	pppm/tip4p 1.0e-4
+
+## System Definition
+
+read_data	data.01.lammps
+
+## Simulation Settings
+
+include		PARM.lammps
+
+group		gH2O type 1 2
+group 		gNa type 3
+group		gCl type 4
+group		gliquid type 1 2 3 4
+group		gtopwall type 5
+group 		gbotwall type 6
+neigh_modify	exclude group gtopwall gtopwall
+neigh_modify 	exclude group gbotwall gbotwall
+dump		mydmp all atom 1000 dump.02.lammpstrj
+
+## Run
+# --> forcing carbon walls to remain rigid
+
+fix		mysf1 gtopwall setforce 0 0 NULL
+fix		mysf2 gbotwall setforce 0 0 NULL
+fix		myaf1 gtopwall aveforce NULL NULL 0 # averaging forces along z, so atoms move together as a block
+fix		myaf2 gbotwall aveforce NULL NULL 0
+
+# Energy Minimization
+
+fix		mynve all nve # performs constant NVE integration to update position and velocity
+compute		tliq gliquid temp
+fix		myber gliquid temp/berendsen 1 1 1 	# rescales the velocities every timestep to reset the temp
+							# tstart, tfinal, damping
+fix_modify	myber temp tliq	# assigning the temp of gliquid as calculated by tliq to the Berendsen thermostat
+
+# --> wo fix_modify, LAMMPS would use the measured temperature of group 'all' as ref temperature when rescaling
+# --> if we run now, would fail because nothing is maintaining the shape of water molecules (bond angle energy 0)
+# --> adding shake algorithm to apply bond and angle constraints
+
+fix		myshk gH2O shake 1.0e-4 200 0 b 1 a 1
+
+# --> fix ID group-ID shake tol iter N contraint values ... keyword value ...
+# --> tol = accuracy tolerance of shake solution
+# --> iter = max # of iterations in each shake solution
+# --> N = print shake statistics every this many timesteps (0 = never)
+# --> constaints
+	# --> b = # bond types
+	# --> a = # angle types
+fix		myrct all recenter NULL NULL INIT # maintaining system centered in middle of box in z-direction
+						# INIT constains COM to initial value
+
+timestep	0.1
+thermo		1000
+run		5000
+write_data	data.02.lammps
