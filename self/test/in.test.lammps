@@ -3,10 +3,11 @@
 
 units lj
 dimension 3
-boundary p p p
 
 atom_style atomic
-pair_style lj/cut 0.5
+pair_style lj/cut 5
+
+boundary p p p
 
 ## System Definition
 # Rectangle with two circles 
@@ -16,17 +17,15 @@ create_box 2 box
 
 region cyin cylinder z 0 0 20 -50 50 side in
 region cyou cylinder z 0 0 20 -50 50 side out
-create_atoms 1 random 8 123456 cyin
-create_atoms 2 random 10 123455 cyou
-
-replicate 2 1 1
+create_atoms 1 random 500 123456 cyin
+create_atoms 2 random 500 23455 cyou
 
 ## Atom Information
 
 mass		1 1 	
 mass		2 1	
-pair_coeff	1 1 0.01 4.0	# setting LJ coefficients for 1-1 atom interactions
-pair_coeff	2 2 0.01 5.0	# setting LJ coefficeints for 2-2 atom interactions
+pair_coeff	1 1 1.0 1.0	# setting LJ coefficients for 1-1 atom interactions
+pair_coeff	2 2 0.5 3.0	# setting LJ coefficeints for 2-2 atom interactions
 
 neigh_modify every 1 delay 5 check yes
 
@@ -40,10 +39,10 @@ minimize 1.0e-4 1.0e-6 1000 10000
 
 fix eq all nve
 fix le all langevin 1.0 1.0 0.1 123
-thermo 1000
+#fix 3 all enforce2d
+thermo 100
 
 dump dmp all atom 100 dump.eq.lammpstrj
 
 timestep 0.005
-thermo 100
-run 10000
+run 50000
