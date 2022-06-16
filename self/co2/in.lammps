@@ -15,39 +15,26 @@ boundary p p p
 lattice diamond 3.57
 region box block -10 10 -10 10 -10 10
 
-create_box 4 box &
+create_box 2 box &
 bond/types 1 &
 angle/types 1 &
 extra/bond/per/atom 2 & 
 extra/angle/per/atom 1 &
 extra/special/per/atom 2
-
-region top block -10 10 -10 10 8 10
-region bottom block -10 10 -10 10 -10 -8
-
-create_atoms 3 region top
-create_atoms 4 region bottom
-
-region fluid block -10 10 -10 10 -7 7
+ 
 lattice sc 4.0
 molecule h2o TIP4P2005.txt
 create_atoms 0 region fluid mol h2o 1
 
-group gtop type 3
-group gbot type 4
 group gh2o type 1 2
 
 ## Atom Information
 
 mass 1 15.9994
 mass 2 1.008
-mass 3 12.011
-mass 4 12.011
 
 pair_coeff 1 1 0.185199 3.1589
 pair_coeff 2 2 0.0 0.0
-pair_coeff 3 3 0.07 3.55
-pair_coeff 4 4 0.07 3.55
 
 bond_coeff 1 0 0.9572
 angle_coeff 1 0 104.52
@@ -56,11 +43,6 @@ angle_coeff 1 0 104.52
 
 dump dmp all atom 100 dump.lammpstrj
 write_data initial.lammps
-
-fix movet gtop setforce 0 0 NULL
-fix moveb gbot setforce 0 0 NULL
-fix avet gtop aveforce NULL NULL 0
-fix aveb gbot aveforce NULL NULL 0
 
 fix mynve all nve
 compute tliq gh2o temp
