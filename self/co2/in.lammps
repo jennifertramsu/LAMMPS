@@ -21,14 +21,15 @@ angle/types 1 &
 extra/bond/per/atom 2 & 
 extra/angle/per/atom 1 &
 extra/special/per/atom 2
- 
+
+region fluid block -10 10 -10 10 -7 7
 lattice sc 4.0
 molecule h2o TIP4P2005.txt
 create_atoms 0 region fluid mol h2o 1
 
 group gh2o type 1 2
 
-## Atom Information
+## Atom Information--------------------------------------------------
 
 mass 1 15.9994
 mass 2 1.008
@@ -39,7 +40,7 @@ pair_coeff 2 2 0.0 0.0
 bond_coeff 1 0 0.9572
 angle_coeff 1 0 104.52
 
-## Simulation Settings
+## Simulation Settings-----------------------------------------------
 
 dump dmp all atom 100 dump.lammpstrj
 write_data initial.lammps
