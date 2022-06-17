@@ -1,4 +1,4 @@
-## Initialization
+## Initialization ---------------------------------------------------
 
 units real
 dimension 3
@@ -10,7 +10,7 @@ pair_style lj/cut/coul/cut 11.0
 
 boundary p p p
 
-## System Definition
+## System Definition ------------------------------------------------
 
 lattice diamond 3.57
 region box block -10 10 -10 10 -10 10
@@ -29,7 +29,7 @@ create_atoms 0 region fluid mol co2 1
 
 group gco2 type 1 2
 
-## Atom Information
+## Atom Information--------------------------------------------------
 
 mass 1 12.011 # C
 mass 2 15.9994 # O
@@ -40,7 +40,7 @@ pair_coeff 2 2 0.1570 3.050
 bond_coeff 1 0 1.16
 angle_coeff 1 0 180
 
-# Simulation Settings
+## Simulation Settings-----------------------------------------------
 
 dump dmp all atom 100 dump.co2.lammpstrj
 write_data initial.co2.lammps
