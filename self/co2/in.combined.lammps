@@ -3,14 +3,15 @@
 units real
 dimension 3
 
-molecule mols TIP4P2005.txt trappe.txt toff 2 boff 1 aoff 1
+molecule h2o TIP4P2005.txt 
+molecule co2 trappe.txt offset 2 1 1 0 0
 
-atom_style template mols
+atom_style full
 bond_style harmonic
 angle_style harmonic
 pair_style hybrid lj/cut/tip4p/cut 1 2 1 1 0.1546 12.0 8.5 lj/cut/coul/cut 11.0
 
-boundary p p p 
+boundary p p p
 
 ## System Definition ------------------------------------------------
 
@@ -29,8 +30,8 @@ region rh2o block -10 10 -10 10 -10 0
 region rco2 block -10 10 -10 10 1 10
 lattice sc 4.0
 
-create_atoms 1 region rh2o mol mols 1
-create_atoms 2 region rco2 mol mols 1
+create_atoms 0 region rh2o mol h2o 1
+create_atoms 0 region rco2 mol co2 1
 
 group gh2o type 1 2
 group gco2 type 3 4
