@@ -1,0 +1,86 @@
+## Initialization ---------------------------------------------------
+
+units real
+dimension 3
+
+molecule h2o TIP4P2005.txt 
+molecule co2 trappe.txt offset 2 1 1 0 0
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+pair_style hybrid lj/cut/tip4p/cut 1 2 1 1 0.1546 12.0 8.5 lj/cut/coul/cut 11.0
+
+boundary p p p
+
+## System Definition ------------------------------------------------
+
+region box block -10 10 -10 10 -10 10
+lattice sc 4.0
+
+create_box 4 box &
+bond/types 2 &
+angle/types 2 &
+extra/bond/per/atom 2 & 
+extra/angle/per/atom 1 &
+extra/special/per/atom 2
+
+create_atoms 0 region box mol h2o 1
+
+# Adding CO2 in-between water
+
+fix dep1 all deposit 10 0 1 1 region box mol co2 near 0.3
+
+group gh2o type 1 2
+group gco2 type 3 4
+
+## Atom Information -------------------------------------------------
+
+mass 1 15.9994 # O
+mass 2 1.008 # H
+mass 3 12.011 # C
+mass 4 15.9994 # O
+
+pair_coeff 1 1 lj/cut/tip4p/cut 0.185199 3.1589
+pair_coeff 2 2 lj/cut/tip4p/cut 0.0 0.0
+pair_coeff 3 3 lj/cut/coul/cut 0.0537 2.8
+pair_coeff 4 4 lj/cut/coul/cut 0.1570 3.050
+
+pair_coeff 1 2 lj/cut/tip4p/cut 0.0 0.0
+pair_coeff 3 4 lj/cut/coul/cut 0.091778398502 2.9250 
+
+pair_coeff 1 3 lj/cut/coul/cut 0.091778398502 2.9250 
+pair_coeff 1 4 lj/cut/coul/cut 0.091778398502 2.9250 
+pair_coeff 2 3 lj/cut/coul/cut 0.091778398502 2.9250 
+pair_coeff 2 4 lj/cut/coul/cut 0.091778398502 2.9250 
+
+bond_coeff 1 0 0.9572
+angle_coeff 1 0 104.52
+bond_coeff 2 0 1.16
+angle_coeff 2 0 180
+
+## Simulation Settings ----------------------------------------------
+
+dump dmp1 all atom 1 dump.deposit.lammpstrj
+
+thermo 1
+run 10
+
+write_data initial.deposit.lammpstrj
+
+unfix dep1
+undump dmp1
+
+fix mynve gh2o nve
+compute tliq gh2o temp
+fix lng gh2o langevin 300.0 300.0 100.0 1
+fix_modify lng temp tliq
+fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
+
+fix rg gco2 rigid/small molecule langevin 300.0 300.0 100.0 1
+
+dump dmp2 all atom 100 dump.deposit2.lammpstrj
+
+timestep 0.05
+thermo 100
+run 5000
