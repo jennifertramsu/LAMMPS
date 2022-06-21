@@ -9,7 +9,7 @@ molecule co2 trappe.txt offset 2 1 1 0 0
 atom_style full
 bond_style harmonic
 angle_style harmonic
-pair_style hybrid lj/cut/tip4p/cut 1 2 1 1 0.1546 12.0 8.5 lj/cut/coul/cut 11.0
+pair_style hybrid lj/cut/tip4p/cut 1 2 1 1 0.1546 12.0 8.5 lj/cut/coul/cut 11.0 
 
 boundary p p p
 
@@ -29,10 +29,10 @@ create_atoms 0 region box mol h2o 1
 
 # Adding CO2 in-between water
 
-fix dep1 all deposit 10 0 1 1 region box mol co2 near 0.3
-
 group gh2o type 1 2
 group gco2 type 3 4
+
+fix dep1 gco2 deposit 10 0 1 1 region box mol co2 near 0.3
 
 ## Atom Information -------------------------------------------------
 
@@ -71,15 +71,15 @@ write_data initial.deposit.lammpstrj
 unfix dep1
 undump dmp1
 
+dump dmp2 all atom 100 dump.deposit2.lammpstrj
+
 fix mynve gh2o nve
 compute tliq gh2o temp
 fix lng gh2o langevin 300.0 300.0 100.0 1
 fix_modify lng temp tliq
 fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
 
-fix rg gco2 rigid/small molecule langevin 300.0 300.0 100.0 1
-
-dump dmp2 all atom 100 dump.deposit2.lammpstrj
+fix rg gco2 rigid/nve/small molecule mol co2
 
 timestep 0.05
 thermo 100

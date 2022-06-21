@@ -72,7 +72,7 @@ fix lng gh2o langevin 300.0 300.0 100.0 1
 fix_modify lng temp tliq
 fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
 
-fix rg gco2 rigid/small molecule
+fix rg gco2 rigid/small molecule mol co2
 
 timestep 0.05
 thermo 100
