@@ -52,16 +52,13 @@ fix lng gh2o langevin 300.0 300.0 100.0 1
 fix_modify lng temp tliq
 fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
 
-#dump dmp all atom 100 dump.msd1.lammpstrj
-
 # Equilibrate
 thermo 10
-#run 5000
+run 5000
 
 # Attempt to calculate diffusivity
 
-#reset_timestep 0
-#undump dmp
+reset_timestep 0
 
 compute cc gh2o chunk/atom molecule ids once
 # defines a computation that calculates an integer chunk ID for each atom in the group
@@ -69,7 +66,7 @@ compute cc gh2o chunk/atom molecule ids once
 # chunks are collections of atoms (e.g. molecules, spatial bins, atoms with similar values (coordination number or potential energy))
 
 compute md gh2o msd/chunk cc # row = Nchunk, col = [dx2 dy2 dz2 dx2+dy2+dz2] Angstroms^2 
-variable avg equal ave(c_md[4])
+variable avg equal ave(c_md[4]) # averaging all chunks
 #fix vt gh2o ave/time 1 1 1 v_avg file test.out mode scalar
 fix vt gh2o vector 1 v_avg
 variable dms equal slope(f_vt)/(6*10*dt)
