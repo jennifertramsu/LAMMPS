@@ -44,7 +44,7 @@ neigh_modify every 1 delay 5 check yes
 
 ## Simulation Settings ----------------------------------------------
 
-write_data initial.msd.lammpstrj
+write_data initial.vacf.lammpstrj
 
 fix mynve gh2o nve
 compute tliq gh2o temp
@@ -60,19 +60,13 @@ run 5000
 
 reset_timestep 0
 
-compute cc gh2o chunk/atom molecule ids once
-# defines a computation that calculates an integer chunk ID for each atom in the group
-# values of chunk IDs are determined by the style of chunk, based on atom type or molecule ID
-# chunks are collections of atoms (e.g. molecules, spatial bins, atoms with similar values (coordination number or potential energy))
+compute vc gh2o vacf
+fix vt gh2o vector 1 c_vc[4]
+variable int equal trap(f_vt)
+variable D equal v_int/3
 
-compute md gh2o msd/chunk cc # row = Nchunk, col = [dx2 dy2 dz2 dx2+dy2+dz2] Angstroms^2 
-variable avg equal ave(c_md[4]) # averaging all chunks
-#fix vt gh2o ave/time 1 1 1 v_avg file test.out mode scalar
-fix vt gh2o vector 1 v_avg
-variable dms equal slope(f_vt)/(6*10*dt)
+thermo_style custom step temp v_int v_D
 
-thermo_style custom step temp v_avg v_dms
-
-dump dmp all atom 100 dump.msd.lammpstrj
+dump dmp all atom 100 dump.vacf.lammpstrj
 
 run 10000
