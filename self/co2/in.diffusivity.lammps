@@ -32,7 +32,7 @@ create_atoms 0 region box mol h2o 1
 group gh2o type 1 2
 group gco2 type 3 4
 
-fix dep1 gco2 deposit 10 0 1 1 region box mol co2 near 0.3
+fix dep1 gco2 deposit 30 0 1 1 region box mol co2 near 0.3
 
 ## Atom Information -------------------------------------------------
 
@@ -78,23 +78,25 @@ fix lng gh2o langevin 300.0 300.0 100.0 1
 fix_modify lng temp tliq
 fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
 
-fix rg gco2 rigid/nve/small molecule mol co2
+fix rg gco2 rigid/nve/small molecule mol co2 langevin 300.0 300.0 100.0 1
 
 # Equilibration
 
-timestep 0.05
+timestep 0.05 # femtoseconds
 thermo 100
-run 5000 
+run 10000
 
 reset_timestep 0 
 
 # Gather data
 
-compute md gco2 msd com yes # [dx2 dy2 dz2 dx2+dy2+dz2]
-fix acc gco2 vector 10 c_md[4] 
-variable msslope equal slope(f_acc)/(10*dt)
+compute md gco2 msd com yes # [dx2 dy2 dz2 dx2+dy2+dz2] Angstroms^2
+variable D equal c_md[4]/(6*10*dt)
+#fix vt all vector 1 c_md[4]
+#variable ds equal slope(f_vt)/6/(10*dt) # convert from A2/fs to cm2/s
+fix pt all print 1 '$(step) $(v_D)' file 'md.txt' title 'Step MSD'
 
-thermo_style custom step temp c_md[4] v_msslope
+thermo_style custom step temp v_D
 
 dump dmp all atom 100 dump.diff.lammpstrj
 
