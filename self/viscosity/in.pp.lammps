@@ -1,0 +1,15 @@
+## Initialization ---------------------------------------------------
+
+units
+dimension
+
+atom_style
+pair_style
+
+boundary
+
+## System Definition ------------------------------------------------
+
+## Atom Information -------------------------------------------------
+
+## Simulation Settings ----------------------------------------------
