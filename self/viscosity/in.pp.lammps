@@ -1,15 +1,76 @@
+# https://www.tandfonline.com/doi/full/10.1080/08927021003720553
+
 ## Initialization ---------------------------------------------------
 
-units
-dimension
+units real
+dimension 3
 
-atom_style
-pair_style
+molecule h2o TIP4P2005.txt 
 
-boundary
+atom_style full
+bond_style harmonic
+angle_style harmonic
+pair_style lj/cut/tip4p/cut 1 2 1 1 0.1546 12.0 8.5
+
+boundary p p p
 
 ## System Definition ------------------------------------------------
 
+lattice sc 4.0
+region box block -10 10 -10 10 -10 10
+
+create_box 2 box &
+bond/types 1 &
+angle/types 1 &
+extra/bond/per/atom 2 & 
+extra/angle/per/atom 1 &
+extra/special/per/atom 2
+
+create_atoms 0 region box mol h2o 1
+
+group gh2o type 1 2
+
 ## Atom Information -------------------------------------------------
 
+# H2O
+mass 1 15.9994 # O
+mass 2 1.008 # H
+
+pair_coeff 1 1 0.185199 3.1589 # eps (kcal/mol), sigma
+pair_coeff 2 2 0.0 0.0
+
+bond_coeff 1 0 0.9572
+angle_coeff 1 0 104.52
+
+neigh_modify every 1 delay 5 check yes
+
 ## Simulation Settings ----------------------------------------------
+
+write_data initial.pp.lammpstrj
+
+# Attempt to calculate viscosity
+# NEMD : Periodic Perturbation
+# --> a periodic acceleration is applied to the system
+# --> this velocity gradient is monitored to extract the viscosity 
+
+dump dmp all atom 100 dump.pp.lammpstrj
+
+fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
+
+fix acc gh2o accelerate/cos 0.05e-5 # apply an acceleration in the x-direction based on its z-coordinate
+compute amp gh2o viscosity/cos # returns [temp, KE tensor * 6, velocity ampliture]
+
+fix mynpt gh2o npt temp 300.0 300.0 100 iso 1.0 1.0 1000
+fix_modify mynpt temp amp
+
+variable lz equal lz # length of box along z-direction
+variable V equal c_amp[7]
+variable density equal density
+
+variable invEta equal v_V/0.05e-5/v_density*39.4784/v_lz/v_lz*100 # reciprocal of viscosity 1/Pa/s
+
+thermo_style custom step temp press density v_V v_invEta
+thermo_modify temp amp
+
+thermo 100
+run 1000
