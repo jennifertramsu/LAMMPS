@@ -44,7 +44,7 @@ neigh_modify every 1 delay 5 check yes
 
 ## Simulation Settings ----------------------------------------------
 
-write_data initial.vacf.lammpstrj
+write_data initial.shear.lammpstrj
 
 fix mynve gh2o nve
 compute tliq gh2o temp
@@ -56,17 +56,4 @@ fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
 thermo 10
 run 5000
 
-# Attempt to calculate diffusivity
-
-reset_timestep 0
-
-compute vc gh2o vacf
-fix vt gh2o vector 1 c_vc[4]
-variable int equal trap(f_vt)
-variable D equal dt*v_int/3
-
-thermo_style custom step temp c_vc[4] v_D
-
-dump dmp all atom 100 dump.vacf.lammpstrj
-
-run 10000
+# Attempt to calculate viscosity
