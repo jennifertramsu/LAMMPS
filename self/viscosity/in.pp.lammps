@@ -55,6 +55,7 @@ write_data initial.pp.lammpstrj
 
 dump dmp all atom 100 dump.pp.lammpstrj
 
+fix com gh2o momentum 100 linear 1 1 1
 fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
 
 fix acc gh2o accelerate/cos 0.05e-5 # apply an acceleration in the x-direction based on its z-coordinate
