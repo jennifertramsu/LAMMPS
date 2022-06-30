@@ -1,0 +1,100 @@
+## Initialization ---------------------------------------------------
+# Variables
+
+variable V equal vol
+variable T equal 300.0
+
+variable p equal 400 # correlation length
+variable s equal 5 # sample interval
+variable d equal $p*$s # dump interval
+
+variable kB equal 1.3806504e-23    # [J/K] Boltzmann
+variable atm2Pa equal 101325.0
+variable A2m equal 1.0e-10
+variable fs2s equal 1.0e-15
+variable convert equal ${atm2Pa}*${atm2Pa}*${fs2s}*${A2m}*${A2m}*${A2m} 
+variable dt equal 4.0
+
+units real
+dimension 3
+
+molecule h2o TIP4P2005.txt 
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+pair_style lj/cut/tip4p/cut 1 2 1 1 0.1546 12.0 8.5
+
+boundary p p p
+
+## System Definition ------------------------------------------------
+
+lattice sc 4.0
+region box block -10 10 -10 10 -10 10
+
+create_box 2 box &
+bond/types 1 &
+angle/types 1 &
+extra/bond/per/atom 2 & 
+extra/angle/per/atom 1 &
+extra/special/per/atom 2
+
+create_atoms 0 region box mol h2o 1
+
+group gh2o type 1 2
+
+## Atom Information -------------------------------------------------
+
+# H2O
+mass 1 15.9994 # O
+mass 2 1.008 # H
+
+pair_coeff 1 1 0.185199 3.1589 # eps (kcal/mol), sigma
+pair_coeff 2 2 0.0 0.0
+
+bond_coeff 1 0 0.9572
+angle_coeff 1 0 104.52
+
+neigh_modify every 1 delay 5 check yes
+
+## Simulation Settings ----------------------------------------------
+
+write_data initial.gk.lammpstrj
+dump dmp all atom 100 dump.gk.lammpstrj
+
+# Constraints
+fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
+
+# Equilibration
+
+velocity all create $T 1 mom yes rot yes dist gaussian
+fix mynvt all nvt temp $T $T 10 drag 0.2
+
+timestep ${dt}
+thermo 10
+run 1000
+
+# Attempt to calculate viscosity
+# Green-Kubo Method
+
+reset_timestep 0
+
+variable pxy equal pxy
+variable pxz equal pxz
+variable pyz equal pyz
+
+fix SS all ave/correlate $s $p $d v_pxy v_pxz v_pyz type auto ave running
+
+variable scale equal ${convert}/(${kB}*$T)*$V*$s*${dt}
+variable v11 equal trap(f_SS[3])*${scale}
+variable v22 equal trap(f_SS[4])*${scale}
+variable v33 equal trap(f_SS[5])*${scale}
+
+thermo_style custom step temp press v_pxy v_pxz v_pyz v_v11 v_v22 v_v33
+thermo $d
+
+run 10000
+
+variable v equal (v_v11+v_v22+v_v33)/3.0
+variable ndens equal count(all)/vol
+print "average viscosity: $v [Pa.s] @ $T K, ${ndens} /A^3"

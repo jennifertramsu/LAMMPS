@@ -59,7 +59,7 @@ fix com gh2o momentum 100 linear 1 1 1
 fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
 
 fix acc gh2o accelerate/cos 0.05e-5 # apply an acceleration in the x-direction based on its z-coordinate
-compute amp gh2o viscosity/cos # returns [temp, KE tensor * 6, velocity ampliture]
+compute amp gh2o viscosity/cos # returns [temp, KE tensor * 6, velocity amplitude]
 
 fix mynpt gh2o npt temp 300.0 300.0 100 iso 1.0 1.0 1000
 fix_modify mynpt temp amp
