@@ -1,0 +1,12 @@
+#
+# A pure water system
+#
+
+tolerance 2.5
+filetype xyz
+output out_packed.xyz
+
+structure water.ag.xyz
+  number 811
+  inside box -14.53 -14.53 -14.53 14.53 14.53 14.53
+end structure

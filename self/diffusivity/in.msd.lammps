@@ -15,7 +15,6 @@ boundary p p p
 ## System Definition ------------------------------------------------
 
 region box block -10 10 -10 10 -10 10
-lattice sc 4.0
 
 create_box 2 box &
 bond/types 1 &
@@ -24,7 +23,7 @@ extra/bond/per/atom 2 &
 extra/angle/per/atom 1 &
 extra/special/per/atom 2
 
-create_atoms 0 region box mol h2o 1
+create_atoms 0 random 34 1 box mol h2o 1
 
 group gh2o type 1 2
 
@@ -40,25 +39,33 @@ pair_coeff 2 2 0.0 0.0
 bond_coeff 1 0 0.9572
 angle_coeff 1 0 104.52
 
-neigh_modify every 1 delay 5 check yes
+neigh_modify every 1 delay 5 one 10000 check yes
 
 ## Simulation Settings ----------------------------------------------
 
 write_data initial.msd.lammpstrj
 
-fix mynve gh2o nve
-compute tliq gh2o temp
-fix lng gh2o langevin 300.0 300.0 100.0 1
-fix_modify lng temp tliq
+# Constraints
 fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
+
+fix stat gh2o npt temp 298 298 100 iso 1 1 100
 
 # Equilibrate
 thermo 10
-run 5000
+run 20000
 
 # Attempt to calculate diffusivity
 
+variable density equal density
+fix d all print 10 "${density}" file msd.density.out screen no 
+
 reset_timestep 0
+
+unfix stat
+
+velocity gh2o create 298.0 1 mom yes rot yes dist gaussian
+fix mynve gh2o nve
+fix stat gh2o langevin 298 298 100 1
 
 compute cc gh2o chunk/atom molecule ids once
 # defines a computation that calculates an integer chunk ID for each atom in the group
@@ -69,10 +76,12 @@ compute md gh2o msd/chunk cc # row = Nchunk, col = [dx2 dy2 dz2 dx2+dy2+dz2] Ang
 variable avg equal ave(c_md[4]) # averaging all chunks
 #fix vt gh2o ave/time 1 1 1 v_avg file test.out mode scalar
 fix vt gh2o vector 1 v_avg
-variable dms equal slope(f_vt)/(6*10*dt)
+variable dms equal slope(f_vt)*1000/(6*dt) # Convert from A2/fs to A2/ps
 
-thermo_style custom step temp v_avg v_dms
+fix pt gh2o print 100 "${dms}" file msd.out
+thermo_style custom step temp press v_avg v_dms
 
 dump dmp all atom 100 dump.msd.lammpstrj
 
-run 10000
+timestep 1.0
+run 100000

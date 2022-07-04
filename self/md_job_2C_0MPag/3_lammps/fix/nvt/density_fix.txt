@@ -1,0 +1,7 @@
+# Time-averaged data for fix rhoAve
+# TimeStep v_rho
+2000 0.97922
+4000 0.97922
+6000 0.97922
+8000 0.97922
+10000 0.97922

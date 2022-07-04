@@ -1,0 +1,10 @@
+# Water 
+
+tolerance 2.0
+filetype pdb
+output initial.pdb
+
+structure water.pdb 
+  number 34 
+  inside box -10 -10 -10 10 10 10
+end structure
