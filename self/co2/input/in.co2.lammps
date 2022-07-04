@@ -42,8 +42,8 @@ angle_coeff 1 0 180
 
 ## Simulation Settings-----------------------------------------------
 
-dump dmp all atom 100 dump.co2.lammpstrj
-write_data initial.co2.lammps
+dump dmp all atom 100 ../dump/dump.co2.lammpstrj
+write_data ../initial/initial.co2.lammps
 
 #fix mynve all nve
 #compute tliq gco2 temp
@@ -57,4 +57,4 @@ fix rg gco2 rigid/small molecule
 
 timestep 1.0
 thermo 100
-run 10000
+run 1000

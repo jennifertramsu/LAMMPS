@@ -1,0 +1,19 @@
+# water
+bond_coeff      2 600.0 0.9572      # K of harmonic, ro of OH bond
+angle_coeff     2 75.0 104.52       # K of harmonic, theta of HOH angle
+pair_coeff      1 1 0.21084 3.1668  # LJ eps, sig of O-O
+pair_coeff      1 2 0 0             # LJ eps, sig of O-H
+pair_coeff      2 2 0 0             # LJ eps, sig of H-H
+# methane
+bond_coeff      1 340.0 1.09        # K of harmonic, ro of CH bond
+angle_coeff     1 33.0 107.8        # K of harmonic, theta of CH angle
+pair_coeff      3 3 0.066 3.5       # LJ eps, sig of C-C
+pair_coeff      4 4 0.03 2.5        # LJ eps, sig of H-H
+
+group           water type 1 2      # group H2O atoms
+group           methane type 3 4    # group CH4 atoms
+
+set type 1 charge -1.1794           # O charge (H2O)
+set type 2 charge  0.5897           # H charge (H2O)
+set type 3 charge -0.24             # C charge (CH4)
+set type 4 charge  0.06             # H charge (CH4)
