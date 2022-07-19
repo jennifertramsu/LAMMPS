@@ -42,8 +42,8 @@ angle_coeff 1 0 104.52
 
 ## Simulation Settings-----------------------------------------------
 
-dump dmp all atom 100 dump.lammpstrj
-write_data initial.lammps
+dump dmp all atom 100 ../dump/dump.lammpstrj
+write_data ../initial/initial.lammps
 
 fix mynve all nve
 compute tliq gh2o temp
@@ -51,7 +51,6 @@ fix lng all langevin 300.0 300.0 100.0 1
 fix_modify lng temp tliq
 
 fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
-fix	myrct all recenter NULL NULL INIT
 
 timestep 0.05
 thermo 100

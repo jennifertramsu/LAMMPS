@@ -67,21 +67,24 @@ angle_coeff 2 0 180
 
 ## Simulation Settings-----------------------------------------------
 
-dump dmp all atom 100 dump.combined.lammpstrj
-write_data initial.combined.lammps
+dump dmp all atom 100 ../dump/dump.combined.lammpstrj
+write_data ../initial/initial.combined.lammps
 
 # Minimization
-minimize 1e-25 1e-25 5000 10000
+#minimize 1e-25 1e-25 5000 10000
 
 fix shk gh2o shake 1.0e-4 200 0 b 1 a 1
+fix rg gco2 rigid/nvt/small molecule mol co2 temp 300.0 300.0 100.0
 
-fix mynve gh2o nve
+fix mynvt gh2o nvt temp 300.0 300.0 100.0
 compute tliq gh2o temp
-fix lng gh2o langevin 300.0 300.0 100.0 1
-fix_modify lng temp tliq
+fix_modify mynvt temp tliq
 
-fix rg gco2 rigid/small molecule mol co2
+#fix mynve gh2o nve
+#compute tliq gh2o temp
+#fix lng gh2o langevin 300.0 300.0 100.0 1
+#fix_modify lng temp tliq
 
 timestep 0.05
 thermo 100
-run 10000
+run 1000

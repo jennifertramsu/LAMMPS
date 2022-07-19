@@ -16,7 +16,7 @@ Masses
 1 12.011
 2 15.9994
 
-Pair Coeffs # lj/cut/coul/cut
+Pair Coeffs # lj/cut/coul/long
 
 1 0.0537 2.8
 2 0.157 3.05
